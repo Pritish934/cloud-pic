@@ -41,10 +41,16 @@ export default function Home() {
   const fetchImages = async () => {
     try {
       const res = await fetch("/api/images");
+
+      if (!res.ok) {
+        console.error("Server error");
+        return;
+      }
+
       const data = await res.json();
       setImages(data);
     } catch (err) {
-      console.error(err);
+      console.error("Fetch failed:", err);
     }
   };
 
