@@ -1,65 +1,133 @@
-import Image from "next/image";
+"use client";
+
+import { useState, useEffect } from "react";
+import PasswordGate from "@/components/PasswordGate";
 
 export default function Home() {
+  const [file, setFile] = useState(null);
+  const [images, setImages] = useState([]);
+
+  // ✅ Upload Image
+  const uploadImage = async () => {
+    if (!file) {
+      alert("Select an image");
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append("file", file);
+
+    try {
+      const res = await fetch("/api/upload", {
+        method: "POST",
+        body: formData,
+      });
+
+      const data = await res.json();
+
+      if (data.url) {
+        setImages((prev) => [data, ...prev]);
+        setFile(null);
+      } else {
+        alert("Upload failed");
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Error uploading");
+    }
+  };
+
+  // ✅ Fetch Images
+  const fetchImages = async () => {
+    try {
+      const res = await fetch("/api/images");
+      const data = await res.json();
+      setImages(data);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  // ✅ Download Function (works everywhere)
+  const downloadImage = async (url) => {
+    const res = await fetch(url);
+    const blob = await res.blob();
+
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = "image.jpg";
+    link.click();
+  };
+
+  //delete function
+  const deleteImage = async (id, public_id) => {
+    const res = await fetch("/api/delete", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ id, public_id }),
+    });
+
+    const data = await res.json();
+
+    if (data.success) {
+      setImages((prev) => prev.filter((img) => img._id !== id));
+    } else {
+      alert("Delete failed");
+    }
+  };
+
+  useEffect(() => {
+    fetchImages();
+  }, []);
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.js file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+    <PasswordGate>
+      <div className="min-h-screen bg-linear-to-br from-pink-100 to-pink-200 p-4">
+        {/* Header */}
+        <h1 className="text-2xl md:text-4xl font-bold text-pink-600 mb-6">
+          PinkCloud ☁️
+        </h1>
+
+        {/* Upload Box */}
+        <div className="bg-white p-4 rounded-xl shadow mb-6">
+          <input
+            type="file"
+            onChange={(e) => setFile(e.target.files[0])}
+            className="mb-3 w-full text-sm"
+          />
+
+          <button
+            onClick={uploadImage}
+            className="w-full bg-pink-500 text-white py-2 rounded-lg active:scale-95 transition"
           >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+            Upload Image
+          </button>
         </div>
-      </main>
-    </div>
+
+        {/* Image Grid */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+          {images.map((img) => (
+            <div
+              key={img._id}
+              className="bg-white p-2 rounded-xl shadow hover:shadow-lg transition"
+            >
+              <img
+                src={img.url}
+                className="w-full h-32 sm:h-36 object-cover rounded mb-2"
+              />
+
+              <button
+                onClick={() => downloadImage(img.url)}
+                className="w-full bg-pink-500 text-white py-1.5 rounded text-sm"
+              >
+                Download
+              </button>
+            </div>
+          ))}
+        </div>
+      </div>
+    </PasswordGate>
   );
 }
