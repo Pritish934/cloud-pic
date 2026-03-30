@@ -127,29 +127,38 @@ export default function Home() {
             {images.map((img) => (
               <div
                 key={img._id}
-                className="relative bg-white p-2 rounded-xl shadow group"
+                className="relative bg-white p-2 rounded-xl shadow overflow-hidden"
               >
                 <img
                   src={img.url}
                   className="w-full h-32 object-cover rounded mb-2"
                 />
-
+                {/* 
                 <button
                   onClick={() => downloadImage(img.url)}
                   className="w-full bg-pink-500 text-white py-1.5 rounded text-sm mb-1"
                 >
                   Download
-                </button>
+                </button> */}
 
                 <button
                   onClick={() => deleteImage(img._id)}
-                  className="    absolute top-2 right-2 z-10
+                  className="       absolute top-2 right-2 z-10
                   bg-red-500 text-white text-xs px-3 py-1 rounded-lg
                   opacity-100 md:opacity-0 md:group-hover:opacity-100
                   transition"
                 >
                   Delete
                 </button>
+                {/* DOWNLOAD BUTTON (BOTTOM) */}
+                <div className="p-2">
+                  <button
+                    onClick={() => downloadImage(img.url)}
+                    className="w-full bg-pink-500 text-white py-1.5 rounded text-sm"
+                  >
+                    Download
+                  </button>
+                </div>
               </div>
             ))}
           </div>
