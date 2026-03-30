@@ -1,25 +1,45 @@
-export default function ImageCard({ url }) {
+"use client";
+
+import { useState } from "react";
+
+export default function ImageCard({ image, onDelete }) {
+  const [loading, setLoading] = useState(false);
+
+  const handleDelete = async () => {
+    try {
+      setLoading(true);
+
+      const res = await fetch(`/api/images/${image._id}`, {
+        method: "DELETE",
+      });
+
+      if (!res.ok) throw new Error("Delete failed");
+
+      onDelete(image._id);
+    } catch (err) {
+      console.error(err);
+      alert("Delete failed");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
-    <div key={img._id} className="bg-white p-2 rounded-xl shadow">
-      <img src={img.url} className="w-full h-32 object-cover rounded mb-2" />
+    <div className="relative group rounded-xl overflow-hidden shadow-lg">
+      {/* Image */}
+      <img
+        src={image.url}
+        alt="uploaded"
+        className="w-full h-60 object-cover"
+      />
 
-      <div className="flex flex-col gap-2">
-        {/* DOWNLOAD */}
-        <button
-          onClick={() => downloadImage(img.url)}
-          className="w-full bg-pink-500 text-white py-1.5 rounded text-sm"
-        >
-          Download
-        </button>
-
-        {/* DELETE */}
-        <button
-          onClick={() => deleteImage(img._id, img.public_id)}
-          className="w-full bg-red-500 text-white py-1.5 rounded text-sm"
-        >
-          Delete
-        </button>
-      </div>
+      {/* Delete Button */}
+      <button
+        onClick={handleDelete}
+        className="absolute top-2 right-2 bg-red-600 text-white px-3 py-1 text-sm rounded-lg opacity-100 md:opacity-0 md:group-hover:opacity-100 transition"
+      >
+        {loading ? "..." : "Delete"}
+      </button>
     </div>
   );
 }
