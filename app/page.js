@@ -143,7 +143,10 @@ export default function Home() {
 
                 <button
                   onClick={() => deleteImage(img._id)}
-                  className="w-full bg-red-500 text-white py-1.5 rounded text-sm"
+                  className="absolute top-2 right-2
+                  bg-red-500 text-white text-xs px-3 py-1 rounded-lg
+                  opacity-100 md:opacity-0 md:group-hover:opacity-100
+                  transition"
                 >
                   Delete
                 </button>
