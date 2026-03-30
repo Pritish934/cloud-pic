@@ -127,7 +127,7 @@ export default function Home() {
             {images.map((img) => (
               <div
                 key={img._id}
-                className="relative bg-white p-2 rounded-xl shadow"
+                className="relative bg-white p-2 rounded-xl shadow group"
               >
                 <img
                   src={img.url}
@@ -143,7 +143,7 @@ export default function Home() {
 
                 <button
                   onClick={() => deleteImage(img._id)}
-                  className="absolute top-2 right-2
+                  className="    absolute top-2 right-2 z-10
                   bg-red-500 text-white text-xs px-3 py-1 rounded-lg
                   opacity-100 md:opacity-0 md:group-hover:opacity-100
                   transition"
