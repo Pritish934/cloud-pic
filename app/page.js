@@ -125,11 +125,11 @@ export default function Home() {
         ) : (
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
             {images.map((img) => (
-              <div
-                key={img._id}
-                className="relative bg-white rounded-xl shadow overflow-hidden"
-              >
-                <img src={img.url} className="w-full h-32 object-cover" />
+              <div key={img._id} className="bg-white rounded-xl shadow p-2">
+                <img
+                  src={img.url}
+                  className="w-full h-32 object-cover rounde mb-2"
+                />
                 {/* 
                 <button
                   onClick={() => downloadImage(img.url)}
@@ -140,7 +140,7 @@ export default function Home() {
 
                 <button
                   onClick={() => deleteImage(img._id)}
-                  className="absolute top-2 right-2 z-50 bg-red-600 text-white text-xs px-3 py-1.5 rounded-lg shadow"
+                  className="w-full bg-red-500 text-white py-1.5 rounded text-sm"
                 >
                   Delete
                 </button>
@@ -148,7 +148,7 @@ export default function Home() {
                 <div className="p-2">
                   <button
                     onClick={() => downloadImage(img.url)}
-                    className="w-full bg-pink-500 text-white py-1.5 rounded text-sm"
+                    className="w-full bg-pink-500 text-white py-1.5 rounded text-sm mb-2"
                   >
                     Download
                   </button>
