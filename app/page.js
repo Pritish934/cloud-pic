@@ -6,6 +6,7 @@ import PasswordGate from "@/components/PasswordGate";
 export default function Home() {
   const [file, setFile] = useState(null);
   const [images, setImages] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   // ✅ Upload Image
   const uploadImage = async () => {
@@ -25,8 +26,9 @@ export default function Home() {
 
       const data = await res.json();
 
-      if (data.url) {
-        setImages((prev) => [data, ...prev]);
+      // ✅ IMPORTANT (expects { image: {...} })
+      if (data.image) {
+        setImages((prev) => [data.image, ...prev]);
         setFile(null);
       } else {
         alert("Upload failed");
@@ -41,20 +43,20 @@ export default function Home() {
   const fetchImages = async () => {
     try {
       const res = await fetch("/api/images");
-
-      if (!res.ok) {
-        console.error("Server error");
-        return;
-      }
-
       const data = await res.json();
-      setImages(data);
+
+      // ✅ SAFE FIX (no more map error)
+      console.log("API RESPONSE:", data); // 🔍 DEBUG
+      setImages(Array.isArray(data.images) ? data.images : []);
     } catch (err) {
       console.error("Fetch failed:", err);
+      setImages([]);
+    } finally {
+      setLoading(false);
     }
   };
 
-  // ✅ Download Function (works everywhere)
+  // ✅ Download
   const downloadImage = async (url) => {
     const res = await fetch(url);
     const blob = await res.blob();
@@ -65,22 +67,25 @@ export default function Home() {
     link.click();
   };
 
-  //delete function
-  const deleteImage = async (id, public_id) => {
-    const res = await fetch("/api/delete", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ id, public_id }),
-    });
+  // ✅ Delete (REAL DELETE)
+  const deleteImage = async (id) => {
+    try {
+      const res = await fetch(`/api/images/${id}`, {
+        method: "DELETE",
+      });
 
-    const data = await res.json();
+      const data = await res.json();
 
-    if (data.success) {
-      setImages((prev) => prev.filter((img) => img._id !== id));
-    } else {
-      alert("Delete failed");
+      if (data.success) {
+        setImages((prev) => prev.filter((img) => img._id !== id));
+        console.log("Deleted image with ID:", id);
+        console.log("API DELETE RESPONSE:", data);
+      } else {
+        alert("Delete failed");
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Error deleting");
     }
   };
 
@@ -96,7 +101,7 @@ export default function Home() {
           PinkCloud ☁️
         </h1>
 
-        {/* Upload Box */}
+        {/* Upload */}
         <div className="bg-white p-4 rounded-xl shadow mb-6">
           <input
             type="file"
@@ -106,33 +111,46 @@ export default function Home() {
 
           <button
             onClick={uploadImage}
-            className="w-full bg-pink-500 text-white py-2 rounded-lg active:scale-95 transition"
+            className="w-full bg-pink-500 text-white py-2 rounded-lg active:scale-95"
           >
             Upload Image
           </button>
         </div>
 
-        {/* Image Grid */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-          {images.map((img) => (
-            <div
-              key={img._id}
-              className="bg-white p-2 rounded-xl shadow hover:shadow-lg transition"
-            >
-              <img
-                src={img.url}
-                className="w-full h-32 sm:h-36 object-cover rounded mb-2"
-              />
-
-              <button
-                onClick={() => downloadImage(img.url)}
-                className="w-full bg-pink-500 text-white py-1.5 rounded text-sm"
+        {/* Grid */}
+        {loading ? (
+          <p className="text-center">Loading...</p>
+        ) : images.length === 0 ? (
+          <p className="text-center">No images found</p>
+        ) : (
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+            {images.map((img) => (
+              <div
+                key={img._id}
+                className="relative bg-white p-2 rounded-xl shadow"
               >
-                Download
-              </button>
-            </div>
-          ))}
-        </div>
+                <img
+                  src={img.url}
+                  className="w-full h-32 object-cover rounded mb-2"
+                />
+
+                <button
+                  onClick={() => downloadImage(img.url)}
+                  className="w-full bg-pink-500 text-white py-1.5 rounded text-sm mb-1"
+                >
+                  Download
+                </button>
+
+                <button
+                  onClick={() => deleteImage(img._id)}
+                  className="w-full bg-red-500 text-white py-1.5 rounded text-sm"
+                >
+                  Delete
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </PasswordGate>
   );

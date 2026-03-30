@@ -36,7 +36,7 @@ export default function ImageCard({ image, onDelete }) {
       {/* Delete Button */}
       <button
         onClick={handleDelete}
-        className="absolute top-2 right-2 bg-red-600 text-white px-3 py-1 text-sm rounded-lg opacity-100 md:opacity-0 md:group-hover:opacity-100 transition"
+        className="absolute top-2 right-2 z-50 bg-red-600 text-white px-3 py-1 text-sm rounded-lg opacity-100 md:opacity-0 md:group-hover:opacity-100 transition"
       >
         {loading ? "..." : "Delete"}
       </button>

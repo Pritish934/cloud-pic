@@ -1,4 +1,5 @@
 export const runtime = "nodejs";
+
 import { connectDB } from "@/lib/mongodb";
 import Image from "@/models/Image";
 import { v2 as cloudinary } from "cloudinary";
@@ -17,14 +18,14 @@ export async function POST(req) {
     const file = formData.get("file");
 
     if (!file) {
-      return Response.json({ error: "No file" });
+      return Response.json({ error: "No file provided" }, { status: 400 });
     }
 
-    // Convert file → buffer
+    // ✅ Convert file → buffer
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
 
-    // Upload to Cloudinary
+    // ✅ Upload to Cloudinary
     const upload = await new Promise((resolve, reject) => {
       cloudinary.uploader
         .upload_stream({ folder: "pinkcloud" }, (err, result) => {
@@ -34,15 +35,20 @@ export async function POST(req) {
         .end(buffer);
     });
 
-    // Save to MongoDB
+    // ✅ Save to MongoDB
     const newImage = await Image.create({
       url: upload.secure_url,
       public_id: upload.public_id,
     });
 
-    return Response.json(newImage);
+    // ✅ FIXED RESPONSE (VERY IMPORTANT)
+    return Response.json({
+      success: true,
+      image: newImage,
+    });
   } catch (err) {
-    console.error(err);
-    return Response.json({ error: "Upload failed" });
+    console.error("UPLOAD ERROR:", err);
+
+    return Response.json({ error: "Upload failed" }, { status: 500 });
   }
 }
