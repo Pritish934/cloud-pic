@@ -140,9 +140,7 @@ export default function Home() {
 
                 <button
                   onClick={() => deleteImage(img._id)}
-                  className="       absolute top-2 right-2 z-50
-                  bg-red-600 text-white text-xs px-3 py-1.5 rounded-lg
-                  shadow-lg"
+                  className="absolute top-2 right-2 z-50 bg-red-600 text-white text-xs px-3 py-1.5 rounded-lg shadow"
                 >
                   Delete
                 </button>
