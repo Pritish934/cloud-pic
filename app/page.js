@@ -89,7 +89,7 @@ export default function Home() {
 
     const link = document.createElement("a");
     link.href = URL.createObjectURL(blob);
-    link.download = "image.jpg";
+    link.download = url.split("/").pop();
     link.click();
   };
 
