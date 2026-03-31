@@ -69,27 +69,30 @@ export default function Home() {
     if (!files.length) return;
 
     try {
-      // 🔥 STEP 1: Upload directly to Cloudinary
       const uploads = files.map(async (file) => {
         const formData = new FormData();
         formData.append("file", file);
-        formData.append("upload_preset", "pinkcloud_upload"); // 👈 your preset
+        formData.append("upload_preset", "pinkcloud_upload");
 
         const res = await fetch(
-          `https://api.cloudinary.com/v1_1/${process.env.CLOUDINARY_CLOUD_NAME}/auto/upload`,
+          "https://api.cloudinary.com/v1_1/dzoqaomw8/auto/upload",
           {
             method: "POST",
             body: formData,
           },
         );
 
-        return res.json();
+        const data = await res.json();
+        console.log("CLOUDINARY:", data);
+
+        if (!res.ok) throw new Error("Cloudinary upload failed");
+
+        return data;
       });
 
       const results = await Promise.all(uploads);
 
-      // 🔥 STEP 2: Save to your DB
-      const savedImages = await Promise.all(
+      const saved = await Promise.all(
         results.map(async (file) => {
           const res = await fetch("/api/images", {
             method: "POST",
@@ -104,15 +107,17 @@ export default function Home() {
           });
 
           const data = await res.json();
+          console.log("DB:", data);
+
           return data.image;
         }),
       );
 
-      // 🔥 STEP 3: Update UI
-      setImages((prev) => [...savedImages, ...prev]);
+      setImages((prev) => [...saved, ...prev]);
       setFiles([]);
     } catch (err) {
       console.error("UPLOAD ERROR:", err);
+      alert("Upload failed — check console");
     }
   };
 
