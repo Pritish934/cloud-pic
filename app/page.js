@@ -38,30 +38,81 @@ export default function Home() {
   //     alert("Error uploading");
   //   }
   // };
+  // const uploadImage = async () => {
+  //   if (!files.length) return;
+
+  //   try {
+  //     const uploads = files.map(async (file) => {
+  //       const formData = new FormData();
+  //       formData.append("file", file);
+
+  //       const res = await fetch("/api/upload", {
+  //         method: "POST",
+  //         body: formData,
+  //       });
+
+  //       return res.json();
+  //     });
+
+  //     const results = await Promise.all(uploads);
+
+  //     const newImages = results.filter((r) => r.image).map((r) => r.image);
+
+  //     setImages((prev) => [...newImages, ...prev]);
+  //     setFiles([]);
+  //   } catch (err) {
+  //     console.error(err);
+  //   }
+  // };
+
   const uploadImage = async () => {
     if (!files.length) return;
 
     try {
+      // 🔥 STEP 1: Upload directly to Cloudinary
       const uploads = files.map(async (file) => {
         const formData = new FormData();
         formData.append("file", file);
+        formData.append("upload_preset", "pinkcloud_upload"); // 👈 your preset
 
-        const res = await fetch("/api/upload", {
-          method: "POST",
-          body: formData,
-        });
+        const res = await fetch(
+          `https://api.cloudinary.com/v1_1/${process.env.CLOUDINARY_CLOUD_NAME}/auto/upload`,
+          {
+            method: "POST",
+            body: formData,
+          },
+        );
 
         return res.json();
       });
 
       const results = await Promise.all(uploads);
 
-      const newImages = results.filter((r) => r.image).map((r) => r.image);
+      // 🔥 STEP 2: Save to your DB
+      const savedImages = await Promise.all(
+        results.map(async (file) => {
+          const res = await fetch("/api/images", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              url: file.secure_url,
+              public_id: file.public_id,
+              type: file.resource_type,
+            }),
+          });
 
-      setImages((prev) => [...newImages, ...prev]);
+          const data = await res.json();
+          return data.image;
+        }),
+      );
+
+      // 🔥 STEP 3: Update UI
+      setImages((prev) => [...savedImages, ...prev]);
       setFiles([]);
     } catch (err) {
-      console.error(err);
+      console.error("UPLOAD ERROR:", err);
     }
   };
 
