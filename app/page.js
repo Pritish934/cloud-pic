@@ -4,38 +4,64 @@ import { useState, useEffect } from "react";
 import PasswordGate from "@/components/PasswordGate";
 
 export default function Home() {
-  const [file, setFile] = useState(null);
+  const [files, setFiles] = useState([]);
   const [images, setImages] = useState([]);
   const [loading, setLoading] = useState(true);
 
   // ✅ Upload Image
-  const uploadImage = async () => {
-    if (!file) {
-      alert("Select an image");
-      return;
-    }
+  // const uploadImage = async () => {
+  //   if (!file) {
+  //     alert("Select an image");
+  //     return;
+  //   }
 
-    const formData = new FormData();
-    formData.append("file", file);
+  //   const formData = new FormData();
+  //   formData.append("file", file);
+
+  //   try {
+  //     const res = await fetch("/api/upload", {
+  //       method: "POST",
+  //       body: formData,
+  //     });
+
+  //     const data = await res.json();
+
+  //     // ✅ IMPORTANT (expects { image: {...} })
+  //     if (data.image) {
+  //       setImages((prev) => [data.image, ...prev]);
+  //       setFile(null);
+  //     } else {
+  //       alert("Upload failed");
+  //     }
+  //   } catch (err) {
+  //     console.error(err);
+  //     alert("Error uploading");
+  //   }
+  // };
+  const uploadImage = async () => {
+    if (!files.length) return;
 
     try {
-      const res = await fetch("/api/upload", {
-        method: "POST",
-        body: formData,
+      const uploads = files.map(async (file) => {
+        const formData = new FormData();
+        formData.append("file", file);
+
+        const res = await fetch("/api/upload", {
+          method: "POST",
+          body: formData,
+        });
+
+        return res.json();
       });
 
-      const data = await res.json();
+      const results = await Promise.all(uploads);
 
-      // ✅ IMPORTANT (expects { image: {...} })
-      if (data.image) {
-        setImages((prev) => [data.image, ...prev]);
-        setFile(null);
-      } else {
-        alert("Upload failed");
-      }
+      const newImages = results.filter((r) => r.image).map((r) => r.image);
+
+      setImages((prev) => [...newImages, ...prev]);
+      setFiles([]);
     } catch (err) {
       console.error(err);
-      alert("Error uploading");
     }
   };
 
@@ -105,7 +131,9 @@ export default function Home() {
         <div className="bg-white p-4 rounded-xl shadow mb-6">
           <input
             type="file"
-            onChange={(e) => setFile(e.target.files[0])}
+            multiple
+            accept="image/*,video/*"
+            onChange={(e) => setFiles(Array.from(e.target.files))}
             className="mb-3 w-full text-sm"
           />
 
@@ -126,17 +154,18 @@ export default function Home() {
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
             {images.map((img) => (
               <div key={img._id} className="bg-white rounded-xl shadow p-2">
-                <img
-                  src={img.url}
-                  className="w-full h-32 object-cover rounde mb-2"
-                />
-                {/* 
-                <button
-                  onClick={() => downloadImage(img.url)}
-                  className="w-full bg-pink-500 text-white py-1.5 rounded text-sm mb-1"
-                >
-                  Download
-                </button> */}
+                {img.type === "video" ? (
+                  <video
+                    src={img.url}
+                    controls
+                    className="w-full h-32 object-cover rounded mb-2"
+                  />
+                ) : (
+                  <img
+                    src={img.url}
+                    className="w-full h-32 object-cover rounded mb-2"
+                  />
+                )}
 
                 <button
                   onClick={() => deleteImage(img._id)}

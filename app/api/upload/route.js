@@ -28,10 +28,13 @@ export async function POST(req) {
     // ✅ Upload to Cloudinary
     const upload = await new Promise((resolve, reject) => {
       cloudinary.uploader
-        .upload_stream({ folder: "pinkcloud" }, (err, result) => {
-          if (err) reject(err);
-          else resolve(result);
-        })
+        .upload_stream(
+          { folder: "pinkcloud", resource_type: "auto" },
+          (err, result) => {
+            if (err) reject(err);
+            else resolve(result);
+          },
+        )
         .end(buffer);
     });
 
@@ -39,6 +42,7 @@ export async function POST(req) {
     const newImage = await Image.create({
       url: upload.secure_url,
       public_id: upload.public_id,
+      type: upload.resource_type,
     });
 
     // ✅ FIXED RESPONSE (VERY IMPORTANT)
